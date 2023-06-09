@@ -1,0 +1,597 @@
+[
+    {
+        "id": "a9bb05237da12afd",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c4320a1bfa7ea841",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "846ece3e62c3a8b0",
+        "type": "mqtt-broker",
+        "name": "MQTT node",
+        "broker": "mqtt-dashboard.com",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "coffee_device",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "0fe19bc7335a125e",
+        "type": "inject",
+        "z": "a9bb05237da12afd",
+        "name": "Thermal devices",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "5",
+        "topic": "temp_device",
+        "payload": "",
+        "payloadType": "num",
+        "x": 400,
+        "y": 640,
+        "wires": [
+            [
+                "296319c950c62df4"
+            ]
+        ]
+    },
+    {
+        "id": "296319c950c62df4",
+        "type": "random",
+        "z": "a9bb05237da12afd",
+        "name": "Input temperature",
+        "low": 1,
+        "high": "300",
+        "inte": "true",
+        "property": "temp",
+        "x": 950,
+        "y": 640,
+        "wires": [
+            [
+                "5df91e074e8e02ee"
+            ]
+        ]
+    },
+    {
+        "id": "5df91e074e8e02ee",
+        "type": "function",
+        "z": "a9bb05237da12afd",
+        "name": "Aggregator",
+        "func": "if (msg.topic == \"temp_device\")\n{  \n    if (msg.temp > 200) \n    {\n        msg.device = \"sprinkler_device\";\n        msg.payload = \"Alert Fire Dept!\"\n        return msg\n    }\n    else {\n        var set_temp = 65;\n        msg = temperature(set_temp);\n        return msg;\n    } \n    \n}\nelse if (msg.topic == \"light_device\"){\n    msg = light();\n    return msg;\n}\nelse if (msg.topic == \"coffee_device\") {\n    msg = coffee();\n    return msg;\n}\nelse if (msg.topic == \"camera_device\") {\n    if (msg.name == \"Tony\") {\n        var yes = authorize();\n        if (yes == 1) {\n            msg.temp = 55;\n            msg = temperature(set_temp);\n            return msg;\n        }\n        else{\n            msg.temp = \"Not Authorized\";\n            return msg;\n        }\n    }\n    else if (msg.name == \"Maddy\") {\n        var yes = authorize();\n        if (yes == 1) {\n            msg.temp = 10;\n            msg = temperature(set_temp);\n            return msg;\n        } else {\n            msg.temp = \"Not Authorized\";\n            return msg;\n        }\n    }\n    else if (msg.name == \"Samuel\") {\n        var yes = authorize();\n        if (yes == 1) {\n            msg.temp = 100;\n            msg = temperature(set_temp);\n            return msg;\n        } else {\n            msg.temp = \"Not Authorized\";\n            return msg;\n        }\n    }\n    else if (msg.name == \"Sydney\") {\n        var yes = authorize();\n        if (yes == 1) {\n            msg.temp = 80;\n            msg = temperature(set_temp);\n            return msg;\n        } else {\n            msg.temp = \"Not Authorized\";\n            return msg;\n        }\n    }\n    \n}\nelse if (msg.topic == \"monoxide_device\"){\n    if (msg.itensity > 0.5) {\n        msg.topic = \"sprinkler_device\"\n        msg.device = \"sprinkler_device\"\n        msg.payload = \"Alert Fire Dept!\"\n        return msg\n    }\n    else{return msg}\n}\nelse if (msg.topic == \"moisture_device\") {\n    msg = moisture();\n    return msg;\n}\n\nfunction temperature(set_temp) {\n    var current_temp = msg.payload;\n    if (current_temp != set_temp) {\n        msg.payload = msg.temp;\n        msg.device = \"temp_device\";\n        return msg;\n    }\n    return msg;\nthrow new Error(\"Function not implemented.\");\n}\n\nfunction light() {\n    if (msg.intensity < 0.5) {\n        msg.payload = 1\n    }\n    else {\n        msg.payload = 0\n    }\n    msg.device = \"light_device\";\n    return msg;\nthrow new Error(\"Function not implemented.\");\n}\n\nfunction coffee() {\n    msg.device = \"coffee_device\";\n    return msg;\nthrow new Error(\"Function not implemented.\");\n}\nfunction authorize() {\n    var auth_lab = [\"Tony\",\"Maddy\"]\n    var auth_workspace = [\"Tony\", \"Maddy\", \"Sydney\", \"Samuel\"]\n    if (msg.room_name == \"Lab\" && auth_lab.includes(msg.name)){\n        var yes;\n        return yes = 1\n    }\n    else if (msg.room_name == \"Work_Space\"){\n        return yes = 1    }\n    else{\n        // msg.temp = \"Not Authorized\";\n        return yes = 0    }\nthrow new Error(\"Function not implemented.\");\n}\n\nfunction moisture() {\n    if (msg.name == \"Apple\" && msg.intensity < 0.5) {\n        msg.payload = 1\n    }\n    else if (msg.name == \"Tomato\" && msg.intensity < 0.9) {\n        msg.payload = 1\n    }\n    else if (msg.name == \"Orange\" && msg.intensity < 0.7) {\n        msg.payload = 1\n    }\n    else if (msg.name == \"Mint\" && msg.intensity < 0.3) {\n        msg.payload = 1\n    }\n    else {\n        msg.payload = 0\n    }\n    msg.device = \"moisture_device\";\n    return msg;\nthrow new Error(\"Function not implemented.\");\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1270,
+        "y": 480,
+        "wires": [
+            [
+                "dd9f99fecb1e3509",
+                "b8fb04d2f34715fd",
+                "c293e9f2eb9ac989",
+                "5a8d03ee24ffa3ec"
+            ]
+        ]
+    },
+    {
+        "id": "b8fb04d2f34715fd",
+        "type": "debug",
+        "z": "a9bb05237da12afd",
+        "name": "Message",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "name",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1480,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "dd9f99fecb1e3509",
+        "type": "switch",
+        "z": "a9bb05237da12afd",
+        "name": "Device switcher",
+        "property": "device",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "temp_device",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "coffee_device",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "light",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "sprinkler_device",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "moisture_device",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 5,
+        "x": 1480,
+        "y": 480,
+        "wires": [
+            [
+                "1f09e0c1e73afe99"
+            ],
+            [
+                "069cf6af684ffb5e"
+            ],
+            [
+                "aa376e74932e2bf7"
+            ],
+            [
+                "9289b95c67f163d5"
+            ],
+            [
+                "c19d85399d3c6080"
+            ]
+        ]
+    },
+    {
+        "id": "069cf6af684ffb5e",
+        "type": "mqtt out",
+        "z": "a9bb05237da12afd",
+        "name": "coffee_machine",
+        "topic": "coffee_device",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "846ece3e62c3a8b0",
+        "x": 1820,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "aa376e74932e2bf7",
+        "type": "mqtt out",
+        "z": "a9bb05237da12afd",
+        "name": "light_device",
+        "topic": "light_device",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "846ece3e62c3a8b0",
+        "x": 1810,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "703b58cd9d552d6a",
+        "type": "inject",
+        "z": "a9bb05237da12afd",
+        "name": "Light",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "light_device",
+        "payload": "",
+        "payloadType": "num",
+        "x": 370,
+        "y": 560,
+        "wires": [
+            [
+                "58515d540bfe2f2a"
+            ]
+        ]
+    },
+    {
+        "id": "62d31ba8cd80ee6f",
+        "type": "inject",
+        "z": "a9bb05237da12afd",
+        "name": "Coffee Machine",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "coffee_device",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 400,
+        "y": 480,
+        "wires": [
+            [
+                "b11333c0084e6f6a"
+            ]
+        ]
+    },
+    {
+        "id": "b11333c0084e6f6a",
+        "type": "Boolean",
+        "z": "a9bb05237da12afd",
+        "name": "Coffee Switch",
+        "kind": "state",
+        "x": 940,
+        "y": 480,
+        "wires": [
+            [
+                "5df91e074e8e02ee"
+            ]
+        ]
+    },
+    {
+        "id": "e949ecd2bfed5b97",
+        "type": "mqtt in",
+        "z": "a9bb05237da12afd",
+        "name": "",
+        "topic": "response",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "846ece3e62c3a8b0",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 60,
+        "y": 640,
+        "wires": [
+            [
+                "e2f4ceb4984705e0"
+            ]
+        ]
+    },
+    {
+        "id": "e2f4ceb4984705e0",
+        "type": "debug",
+        "z": "a9bb05237da12afd",
+        "name": "Message",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 200,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "58515d540bfe2f2a",
+        "type": "random",
+        "z": "a9bb05237da12afd",
+        "name": "Input intensity",
+        "low": "0",
+        "high": "1",
+        "inte": "false",
+        "property": "intensity",
+        "x": 940,
+        "y": 560,
+        "wires": [
+            [
+                "5df91e074e8e02ee"
+            ]
+        ]
+    },
+    {
+        "id": "47bff92665e1fdad",
+        "type": "inject",
+        "z": "a9bb05237da12afd",
+        "name": "Image recognition",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "camera_device",
+        "payload": "",
+        "payloadType": "str",
+        "x": 410,
+        "y": 400,
+        "wires": [
+            [
+                "be6bd72294e4c3d6"
+            ]
+        ]
+    },
+    {
+        "id": "be6bd72294e4c3d6",
+        "type": "function",
+        "z": "a9bb05237da12afd",
+        "name": "Cancidate Detector",
+        "func": "var array = [\"Tony\", \"Maddy\", \"Samuel\", \"Sydney\"]\nvar room = [\"Work_Space\", \"Lab\"]\nfor (let index = 0; index < array.length; index++) {\n    const element = array[Math.floor(Math.random() * array.length)];\n    msg.name = element;\n}\nfor (let index = 0; index < room.length; index++) {\n    const element = room[Math.floor(Math.random() * room.length)];\n    msg.room_name = element;\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 950,
+        "y": 400,
+        "wires": [
+            [
+                "5df91e074e8e02ee"
+            ]
+        ]
+    },
+    {
+        "id": "1f09e0c1e73afe99",
+        "type": "mqtt out",
+        "z": "a9bb05237da12afd",
+        "name": "temp_device",
+        "topic": "temp_device",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "846ece3e62c3a8b0",
+        "x": 1810,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "9289b95c67f163d5",
+        "type": "mqtt out",
+        "z": "a9bb05237da12afd",
+        "name": "sprinkler_device",
+        "topic": "sprinkler_device",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "846ece3e62c3a8b0",
+        "x": 1820,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "6fb30493bd8ffd3d",
+        "type": "inject",
+        "z": "a9bb05237da12afd",
+        "name": "Carbon Monoxide Detector",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "monoxide_device",
+        "payload": "",
+        "payloadType": "str",
+        "x": 430,
+        "y": 320,
+        "wires": [
+            [
+                "8854012c1c6f99a2"
+            ]
+        ]
+    },
+    {
+        "id": "8854012c1c6f99a2",
+        "type": "random",
+        "z": "a9bb05237da12afd",
+        "name": "Carbon Monoxide levels",
+        "low": "0",
+        "high": "1",
+        "inte": "false",
+        "property": "intensity",
+        "x": 970,
+        "y": 320,
+        "wires": [
+            [
+                "5df91e074e8e02ee"
+            ]
+        ]
+    },
+    {
+        "id": "c293e9f2eb9ac989",
+        "type": "debug",
+        "z": "a9bb05237da12afd",
+        "name": "Message",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "intensity",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1480,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "3eb35405198c217d",
+        "type": "inject",
+        "z": "a9bb05237da12afd",
+        "name": "moisture sensor",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "moisture_device",
+        "payload": "",
+        "payloadType": "str",
+        "x": 400,
+        "y": 240,
+        "wires": [
+            [
+                "47057d1f7d91872e"
+            ]
+        ]
+    },
+    {
+        "id": "15281d92a155b4d0",
+        "type": "random",
+        "z": "a9bb05237da12afd",
+        "name": "moisture level",
+        "low": "0",
+        "high": "1",
+        "inte": "false",
+        "property": "intensity",
+        "x": 940,
+        "y": 240,
+        "wires": [
+            [
+                "5df91e074e8e02ee"
+            ]
+        ]
+    },
+    {
+        "id": "c19d85399d3c6080",
+        "type": "mqtt out",
+        "z": "a9bb05237da12afd",
+        "name": "moisture_device",
+        "topic": "moisture_device",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "846ece3e62c3a8b0",
+        "x": 1820,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "47057d1f7d91872e",
+        "type": "function",
+        "z": "a9bb05237da12afd",
+        "name": "Plant Name",
+        "func": "var array = [\"Tomato\", \"Orange\", \"Mint\", \"Apple\"]\nfor (let index = 0; index < array.length; index++) {\n    const element = array[Math.floor(Math.random() * array.length)];\n    msg.name = element;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 240,
+        "wires": [
+            [
+                "15281d92a155b4d0"
+            ]
+        ]
+    },
+    {
+        "id": "5a8d03ee24ffa3ec",
+        "type": "debug",
+        "z": "a9bb05237da12afd",
+        "name": "Message",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1480,
+        "y": 280,
+        "wires": []
+    }
+]
